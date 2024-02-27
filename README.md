@@ -1,1 +1,1 @@
-These are some of my dotfiles. Copy what you like. Test.
+These are some of my dotfiles. Copy what you like.
