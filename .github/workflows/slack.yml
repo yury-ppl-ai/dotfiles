@@ -7,7 +7,7 @@ on:
 jobs:
   opened:
     name: opened PRs
-    if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened')
+    if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
     runs-on: ubuntu-latest
     steps:
       - name: Send custom JSON data to Slack workflow
@@ -52,7 +52,7 @@ jobs:
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
   closed:
     name: closed PRs
-    if: ${{ github.event.action == 'closed'
+    if: ${{ github.event.action == 'closed' }}
     runs-on: ubuntu-latest
     steps:
       - name: Send custom JSON data to Slack workflow
