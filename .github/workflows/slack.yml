@@ -19,31 +19,10 @@ jobs:
             {
               "blocks": [
                 {
-                  "type": "header",
-                  "text": {
-                      "type": "plain_text",
-                      "text": "New PR opened :rocket:",
-                      "emoji": true
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "Opened by:\n${{ github.event.pull_request.user.login }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": " Opened at:\n${{ github.event.pull_request.created_at }}"
-                    }
-                  ]
-                },
-                {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
+                    "text": "PR: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>\nStatus: *Needs Review*"
                   }
                 }
               ]
@@ -60,38 +39,17 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         with:
           update-ts: ${{ steps.slack_opened.outputs.ts }}
-          channel_id: "C06LRLC8PHQ"
+          channel-id: "C06LRLC8PHQ"
           payload: |
             {
               "blocks": [
                 {
-                  "type": "header",
-                  "text": {
-                      "type": "plain_text",
-                      "text": "PR closed :white_check_mark:",
-                      "emoji": true
-                  }
-                },
-                {
                   "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "Closed by:\n${{ github.actor }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": " Closed at:\n${{ github.event.pull_request.closed_at }}"
-                    }
-                  ]
-                },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "PR: ~~<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>~~\nStatus: *Closed*"
+                  }
                 }
-              }
               ]
             }
         env:
