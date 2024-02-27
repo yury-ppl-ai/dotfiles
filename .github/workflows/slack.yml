@@ -14,6 +14,7 @@ jobs:
         id: slack_opened
         uses: slackapi/slack-github-action@v1.24.0
         with:
+          channel-id: "C06LRLC8PHQ"
           payload: |
             {
               "blocks": [
@@ -48,8 +49,7 @@ jobs:
               ]
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
   closed:
     name: closed PRs
     if: ${{ github.event.action == 'closed' }}
@@ -60,6 +60,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         with:
           update-ts: ${{ steps.slack_opened.outputs.ts }}
+          channel_id: "C06LRLC8PHQ"
           payload: |
             {
               "blocks": [
@@ -94,5 +95,4 @@ jobs:
               ]
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
