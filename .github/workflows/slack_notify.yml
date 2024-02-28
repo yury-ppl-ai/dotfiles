@@ -38,7 +38,7 @@ jobs:
         with:
           path: |
             message_ts
-          key: $GITHUB_REF
+          key: ${{ env.GITHUB_REF }}
 
   closed:
     name: closed PRs
@@ -51,10 +51,10 @@ jobs:
         with:
           path: |
             message_ts
-          key: $GITHUB_REF
+          key: ${{ env.GITHUB_REF }}
       - name: Read message ts from cache
         id: read-from-cache
-        run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT
+        run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
       - name: Send message to slack
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
