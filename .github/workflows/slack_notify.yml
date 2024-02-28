@@ -2,7 +2,7 @@ name: slack notify
 
 on:
   pull_request:
-    types: [opened, reopened, closed]
+    types: [labeled, closed]
 
 # The steps for notifying on open and close are part of the same job
 # because when there are multiple jobs, GitHub will create a status
@@ -12,16 +12,17 @@ jobs:
   slack:
     name: notify
     runs-on: ubuntu-latest
+    if: contains(github.context.payload?.pull_request?.labels, 'easy-review')
     steps:
-      # Steps for when a PR is closed.
       - name: Restore cached message ts
-        if: github.event.action == 'closed'
         id: cache-restore
         uses: actions/cache/restore@v4
         with:
           path: |
             message_ts
           key: ${{ github.head_ref }}
+      
+      # Steps for when a PR is closed.
       - name: Read message ts from cache
         if: github.event.action == 'closed'
         id: read-from-cache
@@ -50,7 +51,7 @@ jobs:
 
       # Steps for when a PR is opened.
       - name: Send PR opened message to slack
-        if: github.event.action == 'opened' || github.event.action == 'reopened'
+        if: github.event.action == 'labeled'
         id: slack-open
         uses: slackapi/slack-github-action@v1.25.0
         with:
@@ -70,11 +71,11 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
       - name: Write message ts to cache
-        if: github.event.action == 'opened' || github.event.action == 'reopened'
+        if: github.event.action == 'labeled'
         id: write-to-cache
         run: echo ${{ steps.slack-open.outputs.ts }} > message_ts
       - name: Save cached message ts
-        if: github.event.action == 'opened' || github.event.action == 'reopened'
+        if: github.event.action == 'labeled'
         id: cache-save
         uses: actions/cache/save@v4
         with:
