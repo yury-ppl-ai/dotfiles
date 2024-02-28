@@ -4,11 +4,16 @@ on:
   pull_request:
     types: [opened, reopened, closed]
 
+# The steps for notifying on open and close are part of the same job
+# because when there are multiple jobs, GitHub will create a status
+# check for each one, even if it is skipped. This spams the check list.
+
 jobs:
   slack:
     name: notify
     runs-on: ubuntu-latest
     steps:
+      # Steps for when a PR is closed.
       - name: Restore cached message ts
         if: github.event.action == 'closed'
         id: cache-restore
@@ -40,6 +45,10 @@ jobs:
                 }
               ]
             }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
+
+      # Steps for when a PR is opened.
       - name: Send PR opened message to slack
         if: github.event.action == 'opened' || github.event.action == 'reopened'
         id: slack-open
