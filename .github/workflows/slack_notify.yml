@@ -28,6 +28,7 @@ jobs:
           then
             echo "mode=close" >> $GITHUB_OUTPUT
           elif "${{ ! steps.cache-restore.outputs.cache_hit && github.event.action == 'labeled' && contains(github.event.pull_request.labels.*.name, 'easy-review') }}" == 'true' 
+          then
             echo "mode=open" >> $GITHUB_OUTPUT
           else
             echo "mode=skip" >> $GITHUB_OUTPUT
