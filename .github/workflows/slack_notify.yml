@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Restore cached message ts
-        if: ${{ (github.event.action == 'closed' }}
+        if: ${{ github.event.action == 'closed' }}
         id: cache-restore
         uses: actions/cache/restore@v4
         with:
@@ -19,11 +19,11 @@ jobs:
             message_ts
           key: ${{ github.head_ref }}
       - name: Read message ts from cache
-        if: ${{ (github.event.action == 'closed' }}
+        if: ${{ github.event.action == 'closed' }}
         id: read-from-cache
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
       - name: Send PR closed message to slack
-        if: ${{ (github.event.action == 'closed' }}
+        if: ${{ github.event.action == 'closed' }}
         id: slack
         uses: slackapi/slack-github-action@v1.25.0
         with:
