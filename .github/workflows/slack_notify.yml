@@ -34,7 +34,7 @@ jobs:
                       "text": "Review",
                       "emoji": true
                     },
-                    "url": ${{ github.event.pull_request.html_url }}
+                    "url": "${{ github.event.pull_request.html_url }}"
                   }
                 }
               ]
