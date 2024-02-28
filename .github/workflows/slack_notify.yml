@@ -25,16 +25,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "PR: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>\nStatus: *Needs Review*"
-                  },
-                  "accessory": {
-                    "type": "button",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "Review",
-                      "emoji": true
-                    },
-                    "url": "${{ github.event.pull_request.html_url }}"
+                    "text": "<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}> (*needs review*)"
                   }
                 }
               ]
@@ -80,7 +71,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "PR: ~<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>~\nStatus: Reviewed"
+                    "text": "<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}> (reviewed)"
                   }
                 }
               ]
@@ -116,7 +107,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "PR: ~<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>~\nStatus: Closed"
+                    "text": "~<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>~ (closed)"
                   }
                 }
               ]
