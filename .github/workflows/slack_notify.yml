@@ -38,7 +38,7 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ env.GITHUB_REF }}
+          key: ${{ github.ref }}
 
   closed:
     name: closed PRs
@@ -51,7 +51,7 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ env.GITHUB_REF }}
+          key: ${{ github.ref }}
       - name: Read message ts from cache
         id: read-from-cache
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
