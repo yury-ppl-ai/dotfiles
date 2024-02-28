@@ -7,11 +7,10 @@ on:
 jobs:
   slack:
     name: notify
-    if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
     runs-on: ubuntu-latest
     steps:
       - name: Restore cached message ts
-        if: ${{ github.event.action == 'closed' }}
+        if: github.event.action == 'closed'
         id: cache-restore
         uses: actions/cache/restore@v4
         with:
@@ -19,11 +18,11 @@ jobs:
             message_ts
           key: ${{ github.head_ref }}
       - name: Read message ts from cache
-        if: ${{ github.event.action == 'closed' }}
+        if: github.event.action == 'closed'
         id: read-from-cache
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
       - name: Send PR closed message to slack
-        if: ${{ github.event.action == 'closed' }}
+        if: github.event.action == 'closed'
         id: slack-close
         uses: slackapi/slack-github-action@v1.25.0
         with:
@@ -42,7 +41,7 @@ jobs:
               ]
             }
       - name: Send PR opened message to slack
-        if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
+        if: github.event.action == 'opened' || github.event.action == 'reopened'
         id: slack-open
         uses: slackapi/slack-github-action@v1.25.0
         with:
@@ -62,11 +61,11 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
       - name: Write message ts to cache
-        if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
+        if: github.event.action == 'opened' || github.event.action == 'reopened'
         id: write-to-cache
         run: echo ${{ steps.slack.outputs.ts }} > message_ts
       - name: Save cached message ts
-        if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
+        if: github.event.action == 'opened' || github.event.action == 'reopened'
         id: cache-save
         uses: actions/cache/save@v4
         with:
