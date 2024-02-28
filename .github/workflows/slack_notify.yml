@@ -44,7 +44,7 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ github.ref }}
+          key: ${{ github.head_ref }}
 
   reviewed:
     name: PR reviewed
@@ -60,7 +60,7 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ github.ref }}
+          key: ${{ github.head_ref }}
       - name: Read message ts from cache
         id: read-from-cache
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
@@ -99,7 +99,7 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ github.ref }}
+          key: ${{ github.head_ref }}
       - name: Read message ts from cache
         id: read-from-cache
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
