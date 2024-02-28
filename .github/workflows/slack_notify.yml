@@ -24,7 +24,8 @@ jobs:
       - name: Determine mode
         id: mode
         run: |
-          if [[ "${{ steps.cache-restore.outputs.cache_hit" == 'true' ]]; then
+          if [[ "${{ steps.cache-restore.outputs.cache_hit }}" == "true" ]]
+          then
             echo "cache hit"
           else
             echo "cache miss"
