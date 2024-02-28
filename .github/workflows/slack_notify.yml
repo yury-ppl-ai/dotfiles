@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Send message to slack
         id: slack
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           channel-id: "C06LRLC8PHQ"
           payload: |
@@ -57,9 +57,9 @@ jobs:
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
       - name: Send message to slack
         id: slack
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
-          update-ts: ${{ steps.read-from-cache.ts }}
+          update-ts: ${{ steps.read-from-cache.outputs.ts }}
           channel-id: "C06LRLC8PHQ"
           payload: |
             {
