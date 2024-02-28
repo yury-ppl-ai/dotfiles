@@ -3,10 +3,13 @@ name: slack notify
 on:
   pull_request:
     types: [opened, reopened, closed]
+  
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   opened:
-    name: opened PRs
+    name: PR opened
     if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
     runs-on: ubuntu-latest
     steps:
@@ -40,8 +43,8 @@ jobs:
             message_ts
           key: ${{ github.ref }}
 
-  closed:
-    name: closed PRs
+  reviewed:
+    name: PR reviewed
     if: ${{ github.event.action == 'closed' }}
     runs-on: ubuntu-latest
     steps:
@@ -68,7 +71,52 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "PR: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>\nStatus: *Closed*"
+                    "text": "PR: ~<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>~\nStatus: Reviewed"
+                  },
+                  "accessory": {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Review",
+                      "emoji": true
+                    },
+                    "url": ${{ github.event.pull_request.html_url }}
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
+
+  closed:
+    name: PR closed
+    if: ${{ github.event.action == 'closed' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore cached message ts
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            message_ts
+          key: ${{ github.ref }}
+      - name: Read message ts from cache
+        id: read-from-cache
+        run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
+      - name: Send message to slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          update-ts: ${{ steps.read-from-cache.outputs.ts }}
+          channel-id: "C06LRLC8PHQ"
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "PR: ~<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>~\nStatus: Closed"
                   }
                 }
               ]
