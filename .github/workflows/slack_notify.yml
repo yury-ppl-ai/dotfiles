@@ -1,20 +1,16 @@
-name: slack notifications
+name: slack notify
 
 on:
   pull_request:
     types: [opened, reopened, closed]
-  pull_request_review:
-    types: [submitted]
 
 jobs:
   opened:
     name: opened PRs
     if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
     runs-on: ubuntu-latest
-    outputs:
-      message-ts: ${{ steps.slack.outputs.ts }}
     steps:
-      - name: Send custom JSON data to Slack workflow
+      - name: Send message to slack
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         with:
@@ -33,43 +29,38 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
-  reviewed:
-    name: reviewed PRs
-    if: ${{ github.event.action == 'submitted' }}
-    runs-on: ubuntu-latest
-    needs: opened
-    steps:
-      - name: Send custom JSON data to Slack workflow
-        id: slack
-        uses: slackapi/slack-github-action@v1.24.0
+      - name: Write message ts to cache
+        id: write-to-cache
+        run: echo ${{ steps.slack.outputs.ts }} > message_ts
+      - name: Save cached message ts
+        id: cache-save
+        uses: actions/cache/save@v4
         with:
-          update-ts: ${{ needs.opened.outputs.message-ts }}
-          channel-id: "C06LRLC8PHQ"
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "PR: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>\nStatus: *Reviewed*"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
+          path: |
+            message_ts
+          key: ${{ GITHUB_REF }}
+
   closed:
     name: closed PRs
     if: ${{ github.event.action == 'closed' }}
     runs-on: ubuntu-latest
     needs: opened
     steps:
-      - name: Send custom JSON data to Slack workflow
+      - name: Restore cached message ts
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            message_ts
+          key: ${{ GITHUB_REF }}
+      - name: Read message ts from cache
+        id: read-from-cache
+        run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT
+      - name: Send message to slack
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         with:
-          update-ts: ${{ needs.opened.outputs.message-ts }}
+          update-ts: ${{ steps.read-from-cache.ts }}
           channel-id: "C06LRLC8PHQ"
           payload: |
             {
