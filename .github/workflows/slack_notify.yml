@@ -45,7 +45,7 @@ jobs:
 
   reviewed:
     name: PR reviewed
-    if: ${{ github.event.action == 'closed' }}
+    if: ${{ github.event.action == 'submitted' }}
     runs-on: ubuntu-latest
     steps:
       - name: Restore cached message ts
