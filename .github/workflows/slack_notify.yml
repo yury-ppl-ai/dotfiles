@@ -13,6 +13,9 @@ jobs:
     if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Dump env
+        id: dump-env
+        run: env
       - name: Send message to slack
         id: slack
         uses: slackapi/slack-github-action@v1.25.0
@@ -48,6 +51,9 @@ jobs:
     if: ${{ github.event.action == 'submitted' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Dump env
+        id: dump-env
+        run: env
       - name: Restore cached message ts
         id: cache-restore
         uses: actions/cache/restore@v4
@@ -84,6 +90,9 @@ jobs:
     if: ${{ github.event.action == 'closed' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Dump env
+        id: dump-env
+        run: env
       - name: Restore cached message ts
         id: cache-restore
         uses: actions/cache/restore@v4
