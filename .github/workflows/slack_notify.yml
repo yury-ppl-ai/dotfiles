@@ -67,7 +67,6 @@ jobs:
         run: echo ${{ steps.slack.outputs.ts }} > message_ts
       - name: Save cached message ts
         if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
-        id: write-to-cache
         id: cache-save
         uses: actions/cache/save@v4
         with:
