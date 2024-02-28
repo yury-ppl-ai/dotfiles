@@ -38,13 +38,12 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ GITHUB_REF }}
+          key: $GITHUB_REF
 
   closed:
     name: closed PRs
     if: ${{ github.event.action == 'closed' }}
     runs-on: ubuntu-latest
-    needs: opened
     steps:
       - name: Restore cached message ts
         id: cache-restore
@@ -52,7 +51,7 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ GITHUB_REF }}
+          key: $GITHUB_REF
       - name: Read message ts from cache
         id: read-from-cache
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT
