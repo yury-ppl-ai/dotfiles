@@ -3,20 +3,46 @@ name: slack notify
 on:
   pull_request:
     types: [opened, reopened, closed]
-  
-  pull_request_review:
-    types: [submitted]
 
 jobs:
-  opened:
-    name: PR opened
+  slack:
+    name: notify
     if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Dump env
-        id: dump-env
-        run: env
-      - name: Send message to slack
+      - name: Restore cached message ts
+        if: ${{ (github.event.action == 'closed' }}
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            message_ts
+          key: ${{ github.head_ref }}
+      - name: Read message ts from cache
+        if: ${{ (github.event.action == 'closed' }}
+        id: read-from-cache
+        run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
+      - name: Send PR closed message to slack
+        if: ${{ (github.event.action == 'closed' }}
+        id: slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          update-ts: ${{ steps.read-from-cache.outputs.ts }}
+          channel-id: "C06LRLC8PHQ"
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "~${{ github.event.pull_request.html_url }}~ (closed)"
+                  }
+                }
+              ]
+            }
+      - name: Send PR opened message to slack
+        if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
         id: slack
         uses: slackapi/slack-github-action@v1.25.0
         with:
@@ -36,90 +62,15 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
       - name: Write message ts to cache
+        if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
         id: write-to-cache
         run: echo ${{ steps.slack.outputs.ts }} > message_ts
       - name: Save cached message ts
+        if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
+        id: write-to-cache
         id: cache-save
         uses: actions/cache/save@v4
         with:
           path: |
             message_ts
           key: ${{ github.head_ref }}
-
-  reviewed:
-    name: PR reviewed
-    if: ${{ github.event.action == 'submitted' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dump env
-        id: dump-env
-        run: env
-      - name: Restore cached message ts
-        id: cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            message_ts
-          key: ${{ github.head_ref }}
-      - name: Read message ts from cache
-        id: read-from-cache
-        run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
-      - name: Send message to slack
-        id: slack
-        uses: slackapi/slack-github-action@v1.25.0
-        with:
-          update-ts: ${{ steps.read-from-cache.outputs.ts }}
-          channel-id: "C06LRLC8PHQ"
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "${{ github.event.pull_request.html_url }} (reviewed)"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
-
-  closed:
-    name: PR closed
-    if: ${{ github.event.action == 'closed' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dump env
-        id: dump-env
-        run: env
-      - name: Restore cached message ts
-        id: cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            message_ts
-          key: ${{ github.head_ref }}
-      - name: Read message ts from cache
-        id: read-from-cache
-        run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
-      - name: Send message to slack
-        id: slack
-        uses: slackapi/slack-github-action@v1.25.0
-        with:
-          update-ts: ${{ steps.read-from-cache.outputs.ts }}
-          channel-id: "C06LRLC8PHQ"
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "~${{ github.event.pull_request.html_url }}~ (closed)"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
