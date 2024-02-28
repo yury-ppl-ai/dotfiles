@@ -12,7 +12,7 @@ jobs:
   slack:
     name: notify
     runs-on: ubuntu-latest
-    if: contains(github.context.payload.pull_request.labels, 'easy-review')
+    if: contains(github.context.payload.pull_request.labels, ' easy-review ')
     steps:
       - name: Restore cached message ts
         id: cache-restore
