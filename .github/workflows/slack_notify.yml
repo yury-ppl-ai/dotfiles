@@ -1,12 +1,17 @@
 name: slack notify
 
 on:
+  # This must be pull_request_target, otherwise the caches for the
+  # labeled action and the closed action will not match.
   pull_request_target:
     types: [opened, closed]
 
 # The steps for notifying on open and close are part of the same job
 # because when there are multiple jobs, GitHub will create a status
 # check for each one, even if it is skipped. This spams the check list.
+
+# Channel names must be specified by id. In this case:
+# C05RGFN83LZ -> #infra-code-review
 
 jobs:
   slack:
@@ -53,7 +58,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.25.0
         with:
           update-ts: ${{ steps.read-from-cache.outputs.ts }}
-          channel-id: "C06LRLC8PHQ"
+          channel-id: "C05RGFN83LZ"
           payload: |
             {
               "blocks": [
@@ -75,7 +80,7 @@ jobs:
         id: slack-open
         uses: slackapi/slack-github-action@v1.25.0
         with:
-          channel-id: "C06LRLC8PHQ"
+          channel-id: "C05RGFN83LZ"
           payload: |
             {
               "blocks": [
