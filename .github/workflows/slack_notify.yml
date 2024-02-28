@@ -2,7 +2,7 @@ name: slack notify
 
 on:
   pull_request_target:
-    types: [labeled, closed]
+    types: [opened, closed]
 
 # The steps for notifying on open and close are part of the same job
 # because when there are multiple jobs, GitHub will create a status
@@ -20,7 +20,7 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ github.head_ref }}
+          key: slackbot-${{ github.head_ref }}
       - name: Determine mode
         id: mode
         run: |
@@ -34,7 +34,7 @@ jobs:
           if [[ "${{ steps.cache-restore.outputs.cache-hit && github.event.action == 'closed' }}" == "true" ]]
           then
             echo "mode=close" >> $GITHUB_OUTPUT
-          elif "${{ ! steps.cache-restore.outputs.cache-hit && github.event.action == 'labeled' && contains(github.event.pull_request.labels.*.name, 'easy-review') }}" == "true"
+          elif "${{ ! steps.cache-restore.outputs.cache-hit && github.event.action == 'opened' && contains(github.event.pull_request.labels.*.name, 'auto-deploy') }}" == "false"
           then
             echo "mode=open" >> $GITHUB_OUTPUT
           else
@@ -61,7 +61,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "~<${{ github.event.pull_request.html_url }}>~ (closed)"
+                    "text": "~<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>~ (closed)"
                   }
                 }
               ]
@@ -69,7 +69,7 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
 
-      # Steps for when a PR is opened/labeled.
+      # Steps for when a PR is opened.
       - name: Send PR opened message to slack
         if: steps.mode.outputs.mode == 'open'
         id: slack-open
@@ -83,7 +83,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ github.event.pull_request.html_url }} (*needs review*)"
+                    "text": "<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}> (*needs review*)"
                   }
                 }
               ]
@@ -101,4 +101,4 @@ jobs:
         with:
           path: |
             message_ts
-          key: ${{ github.head_ref }}
+          key: slackbot-${{ github.head_ref }}
