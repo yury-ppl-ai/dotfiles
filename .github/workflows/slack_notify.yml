@@ -39,7 +39,7 @@ jobs:
           if [[ "${{ steps.cache-restore.outputs.cache-hit && github.event.action == 'closed' }}" == "true" ]]
           then
             echo "mode=close" >> $GITHUB_OUTPUT
-          elif "${{ ! steps.cache-restore.outputs.cache-hit && github.event.action == 'opened' && contains(github.event.pull_request.labels.*.name, 'auto-deploy') }}" == "false"
+          elif "${{ ! steps.cache-restore.outputs.cache-hit && github.event.action == 'opened' && ! contains(github.event.pull_request.labels.*.name, 'auto-deploy') }}" == "true"
           then
             echo "mode=open" >> $GITHUB_OUTPUT
           else
