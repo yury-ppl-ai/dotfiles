@@ -24,7 +24,7 @@ jobs:
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
       - name: Send PR closed message to slack
         if: ${{ github.event.action == 'closed' }}
-        id: slack
+        id: slack-close
         uses: slackapi/slack-github-action@v1.25.0
         with:
           update-ts: ${{ steps.read-from-cache.outputs.ts }}
@@ -43,7 +43,7 @@ jobs:
             }
       - name: Send PR opened message to slack
         if: ${{ (github.event.action == 'opened' || github.event.action == 'reopened') }}
-        id: slack
+        id: slack-open
         uses: slackapi/slack-github-action@v1.25.0
         with:
           channel-id: "C06LRLC8PHQ"
