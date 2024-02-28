@@ -12,8 +12,8 @@ jobs:
   slack:
     name: notify
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'easy-review')
     steps:
+      # Steps for when PR is closed.
       - name: Restore cached message ts
         id: cache-restore
         uses: actions/cache/restore@v4
@@ -21,14 +21,24 @@ jobs:
           path: |
             message_ts
           key: ${{ github.head_ref }}
-      
-      # Steps for when a PR is closed.
+      - name: Determine mode
+        id: mode
+        run: |
+          if [[ ${{ steps.cache-restore.outputs.cache_hit && github.event.action == 'closed' }} == 'true' ]]
+          then
+            echo "mode=close" >> $GITHUB_OUTPUT
+          elif ${{ ! steps.cache-restore.outputs.cache_hit && github.event.action == 'labeled' && contains(github.event.pull_request.labels.*.name, 'easy-review') }} == 'true' 
+            echo "mode=open" >> $GITHUB_OUTPUT
+          else
+            echo "mode=skip" >> $GITHUB_OUTPUT
+          fi
+        cat $GITHUB_OUTPUT
       - name: Read message ts from cache
-        if: github.event.action == 'closed'
+        if: github.event.action == 'closed' && steps.cache-restore.outputs.cache_hit == 'true'
         id: read-from-cache
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
       - name: Send PR closed message to slack
-        if: github.event.action == 'closed'
+        if: github.event.action == 'closed' && steps.cache-restore.outputs.cache_hit == 'true'
         id: slack-close
         uses: slackapi/slack-github-action@v1.25.0
         with:
@@ -49,9 +59,9 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
 
-      # Steps for when a PR is opened.
+      # Steps for when a PR is opened/labeled.
       - name: Send PR opened message to slack
-        if: github.event.action == 'labeled'
+        if: github.event.action == 'labeled' && contains(github.event.pull_request.labels.*.name, 'easy-review')
         id: slack-open
         uses: slackapi/slack-github-action@v1.25.0
         with:
