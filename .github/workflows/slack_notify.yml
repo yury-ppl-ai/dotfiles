@@ -13,7 +13,7 @@ jobs:
     name: notify
     runs-on: ubuntu-latest
     steps:
-      # Steps for when PR is closed.
+      # Common steps
       - name: Restore cached message ts
         id: cache-restore
         uses: actions/cache/restore@v4
@@ -24,12 +24,6 @@ jobs:
       - name: Determine mode
         id: mode
         run: |
-          if [[ "${{ steps.cache-restore.outputs.cache-hit }}" == "true" ]]
-          then
-            echo "cache hit"
-          else
-            echo "cache miss"
-          fi
           if [[ "${{ steps.cache-restore.outputs.cache-hit && github.event.action == 'closed' }}" == 'true' ]]
           then
             echo "mode=close" >> $GITHUB_OUTPUT
@@ -40,12 +34,14 @@ jobs:
             echo "mode=skip" >> $GITHUB_OUTPUT
           fi
           cat $GITHUB_OUTPUT
+
+      # Steps for when a PR is closed
       - name: Read message ts from cache
-        if: github.event.action == 'closed' && steps.cache-restore.outputs.cache_hit == 'true'
+        if: steps.mode.outputs.mode == 'close'
         id: read-from-cache
         run: touch message_ts && echo "ts=$(< message_ts)" >> $GITHUB_OUTPUT && cat message_ts
       - name: Send PR closed message to slack
-        if: github.event.action == 'closed' && steps.cache-restore.outputs.cache_hit == 'true'
+        if: steps.mode.outputs.mode == 'close'
         id: slack-close
         uses: slackapi/slack-github-action@v1.25.0
         with:
@@ -68,7 +64,7 @@ jobs:
 
       # Steps for when a PR is opened/labeled.
       - name: Send PR opened message to slack
-        if: github.event.action == 'labeled' && contains(github.event.pull_request.labels.*.name, 'easy-review')
+        if: steps.mode.outputs.mode == 'open'
         id: slack-open
         uses: slackapi/slack-github-action@v1.25.0
         with:
@@ -88,11 +84,11 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
       - name: Write message ts to cache
-        if: github.event.action == 'labeled'
+        if: steps.mode.outputs.mode == 'open'
         id: write-to-cache
         run: echo ${{ steps.slack-open.outputs.ts }} > message_ts
       - name: Save cached message ts
-        if: github.event.action == 'labeled'
+        if: steps.mode.outputs.mode == 'open'
         id: cache-save
         uses: actions/cache/save@v4
         with:
