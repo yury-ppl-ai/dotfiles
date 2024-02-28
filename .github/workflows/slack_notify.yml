@@ -24,16 +24,16 @@ jobs:
       - name: Determine mode
         id: mode
         run: |
-          if [[ "${{ steps.cache-restore.outputs.cache_hit }}" == "true" ]]
+          if [[ "${{ steps.cache-restore.outputs.cache-hit }}" == "true" ]]
           then
             echo "cache hit"
           else
             echo "cache miss"
           fi
-          if [[ "${{ steps.cache-restore.outputs.cache_hit && github.event.action == 'closed' }}" == 'true' ]]
+          if [[ "${{ steps.cache-restore.outputs.cache-hit && github.event.action == 'closed' }}" == 'true' ]]
           then
             echo "mode=close" >> $GITHUB_OUTPUT
-          elif "${{ ! steps.cache-restore.outputs.cache_hit && github.event.action == 'labeled' && contains(github.event.pull_request.labels.*.name, 'easy-review') }}" == 'true' 
+          elif "${{ ! steps.cache-restore.outputs.cache-hit && github.event.action == 'labeled' && contains(github.event.pull_request.labels.*.name, 'easy-review') }}" == 'true' 
           then
             echo "mode=open" >> $GITHUB_OUTPUT
           else
