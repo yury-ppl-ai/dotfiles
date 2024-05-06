@@ -1,3 +1,13 @@
+HISTSIZE=10000000
+SAVEHIST=10000000
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS
+
+eval "$(brew shellenv)"
+
+fpath=($HOMEBREW_PREFIX/share/zsh/site-functions $fpath)
+
 autoload -U compinit
 compinit
 
@@ -16,10 +26,18 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+export AWS_DEFAULT_PROFILE=default
 
 zsh_prompt() {
-    if [[ -z "$AWS_DEFAULT_PROFILE" ]]; then
-        PS1="%n@%m %1~ %# "
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        venv_full=`basename $VIRTUAL_ENV`
+        venv="(${venv_full%%-*}) "
+    else
+        venv=""
+    fi
+
+    if [[ -z "$AWS_DEFAULT_PROFILE" || "$AWS_DEFAULT_PROFILE" == "default" ]]; then
+        PS1="${venv}%n@local %1~ %# "
     else
         context=`kubectl config current-context 2>&1`
         if [ $? -ne 0 ]; then
@@ -29,9 +47,9 @@ zsh_prompt() {
         fi
 
         if [[ "$AWS_DEFAULT_PROFILE" == "prod" ]]; then
-            PS1="[%B$AWS_DEFAULT_PROFILE$context%b] %n@%m %1~ %# "
+            PS1="[%B$AWS_DEFAULT_PROFILE$context%b] $venv%n@local %1~ %# "
         else
-            PS1="[$AWS_DEFAULT_PROFILE$context] %n@%m %1~ %# "
+            PS1="[$AWS_DEFAULT_PROFILE$context] $venv%n@local %1~ %# "
         fi
     fi
 }
@@ -55,16 +73,18 @@ function install_clusters() {
 }
 
 function switch_workspace() {
-    export AWS_DEFAULT_PROFILE=
+    export AWS_DEFAULT_PROFILE=default
     export KUBECONFIG=/dev/null
-    export AWS_DEFAULT_PROFILE="$1"
-    config="$HOME/.kube/$1/$2"
-    if [ -n "$2" ]; then
-        if [ -f "$config" ]; then
-            export KUBECONFIG="$config"
-        else
-            echo "$config not found" 1>&2
-        fi
+    if [ -n "$1" ]; then
+      export AWS_DEFAULT_PROFILE="$1"
+      config="$HOME/.kube/$1/$2"
+      if [ -n "$2" ]; then
+	  if [ -f "$config" ]; then
+	      export KUBECONFIG="$config"
+	  else
+	      echo "$config not found" 1>&2
+	  fi
+      fi
     fi
 }
 
@@ -91,3 +111,44 @@ function _prod() {
 }
 
 compdef _prod prod
+
+function ecrlogin() {
+    if [[ "$AWS_DEFAULT_PROFILE"=="sandbox" ]]; then
+    	aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 706218807402.dkr.ecr.us-east-1.amazonaws.com
+    elif [[ "$AWS_DEFAULT_PROFILE"=="prod" ]]; then
+    	aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 699753309705.dkr.ecr.us-east-1.amazonaws.com
+    else
+        echo "No AWS environment set." >&2
+    fi
+}
+
+alias jc="curl -H 'Content-Type: application/json'"
+
+source ~/.secrets
+
+PATH=$PATH:$HOME/.local/bin
+
+alias dcl="docker compose -f $HOME/workspace/agi/infra/dev/docker-compose.yml"
+
+function since_last_deploy() {
+  git log --oneline --format="%h %s" $(kubectl -n web get deployment web-server -o=jsonpath='{$.spec.template.spec.containers[0].image}' | cut -d: -f2)...$(git rev-parse origin/main) | sed -E 's/\[[A-Z]{3,4}-[0-9]+\] //'
+}
+
+alias db-prod="psql $PROD_DB_RO"
+alias db-analytics="psql $ANALYTICS_DB_RW"
+
+alias l="ls --color -F"
+
+alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+
+function gg() {
+    git grep "$@" -- ':!*.json'
+}
+
+# pnpm
+export PNPM_HOME="/Users/yury/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
